@@ -19,10 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let _ = (scene as? UIWindowScene) else { return }
         
         //在这里初始化按钮
-    #if DEBUG
         PZXNetWorkDevTool.shared.showFloatingWindow()
-    #endif
-        
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

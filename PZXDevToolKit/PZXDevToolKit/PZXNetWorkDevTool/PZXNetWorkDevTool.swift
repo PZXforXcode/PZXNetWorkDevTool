@@ -186,8 +186,10 @@ public class PZXNetWorkDevTool {
     
     
     func showFloatingWindow() {
+    #if DEBUG
         floatingWindow = PZXFloatingWindow()
         floatingWindow?.isHidden = false
+    #endif
     }
     
     private init() {
@@ -209,9 +211,13 @@ public class PZXNetWorkDevTool {
     
     // MARK: - Public Methods
     public func setup() {
+#if DEBUG
         setupPending = true
         setupNetworkInterceptor()
         trySetupFloatingButton()
+#endif
+
+ 
     }
     
     // MARK: - Private Methods

@@ -1,3 +1,48 @@
+# PZXNetWorkDevTool
+
+## Introduction
+`PZXNetWorkDevTool` is a lightweight iOS debugging tool for real-time network request monitoring. It provides a floating window for easy access to network logs.
+
+## Features
+- Real-time network request monitoring
+- Floating window for quick access
+- Displays request method, URL, status code, and response time
+
+## Installation
+Currently, you can use `PZXNetWorkDevTool` by manually cloning the repository and adding the files to your project.
+
+## Usage
+
+### 1. Initialize in `AppDelegate`
+To enable network monitoring, initialize `PZXNetWorkDevTool` in `AppDelegate`:
+
+```swift
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // Start network monitoring tool
+    PZXNetWorkDevTool.shared.setup()
+    return true
+}
+```
+
+### 2. Show Floating Window in `SceneDelegate`
+If your app supports multiple scenes (iOS 13+), you also need to initialize the floating window in `SceneDelegate`:
+
+```swift
+func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    guard let _ = (scene as? UIWindowScene) else { return }
+    
+    // Initialize floating debug button
+    PZXNetWorkDevTool.shared.showFloatingWindow()
+}
+```
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+If you have any questions or suggestions, feel free to submit an issue or contribute to the project!
+
+# 中文介绍
 
 # PZXNetWorkDevTool
 

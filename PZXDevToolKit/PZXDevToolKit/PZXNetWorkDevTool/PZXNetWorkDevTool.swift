@@ -605,7 +605,12 @@ private class NetworkRequestDetailViewController: UIViewController {
     
     // MARK: - Properties
     private let request: NetworkRequestModel
-    private let textView = UITextView()
+    private let textView: UITextView = {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.backgroundColor = .systemBackground
+        return textView
+    }()
     
     // MARK: - Initialization
     init(request: NetworkRequestModel) {
@@ -627,15 +632,12 @@ private class NetworkRequestDetailViewController: UIViewController {
     // MARK: - UI Setup
     private func setupUI() {
         title = "请求详情"
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
         textView.frame = view.bounds
         textView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        textView.font = .monospacedSystemFont(ofSize: 14, weight: .regular)
-        textView.isEditable = false
         view.addSubview(textView)
         
-        // 添加分享按钮
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"),
                                                           style: .plain,
                                                           target: self,
@@ -644,37 +646,85 @@ private class NetworkRequestDetailViewController: UIViewController {
     
     // MARK: - Display
     private func displayRequestDetails() {
-        var details = """
-        URL: \(request.url)
-        Method: \(request.method)
-        Status Code: \(request.statusCode)
-        Duration: \(String(format: "%.2f", request.duration))s
-        Time: \(request.timestamp)
+        let attributedString = NSMutableAttributedString()
         
-        Request Headers:
-        \(formatDictionary(request.requestHeaders))
+        // 定义样式
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 16),
+            .foregroundColor: UIColor.systemBlue
+        ]
         
-        Request Body:
-        \(request.requestBody ?? "None")
+        let contentAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14),
+            .foregroundColor: UIColor.label
+        ]
         
-        Response Headers:
-        \(formatDictionary(request.responseHeaders))
+        let separatorAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14),
+            .foregroundColor: UIColor.secondaryLabel
+        ]
         
-        Response Body:
-        \(request.responseBody ?? "None")
-        """
+        // URL
+        attributedString.append(NSAttributedString(string: "URL", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.url)\n\n", attributes: contentAttributes))
         
-        textView.text = details
+        // Method
+        attributedString.append(NSAttributedString(string: "请求方法", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.method)\n\n", attributes: contentAttributes))
+        
+        // Status Code
+        let statusColor: UIColor = request.isSuccess ? .systemGreen : .systemRed
+        let statusAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14),
+            .foregroundColor: statusColor
+        ]
+        attributedString.append(NSAttributedString(string: "状态码", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.statusCode)\n\n", attributes: statusAttributes))
+        
+        // Duration
+        attributedString.append(NSAttributedString(string: "耗时", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(String(format: "%.2f", request.duration))秒\n\n", attributes: contentAttributes))
+        
+        // Time
+        attributedString.append(NSAttributedString(string: "时间", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.timestamp)\n\n", attributes: contentAttributes))
+        
+        // Request Headers
+        attributedString.append(NSAttributedString(string: "请求头", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(formatDictionary(request.requestHeaders))\n\n", attributes: contentAttributes))
+        
+        // Request Body
+        attributedString.append(NSAttributedString(string: "请求体", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.requestBody ?? "无")\n\n", attributes: contentAttributes))
+        
+        // Response Headers
+        attributedString.append(NSAttributedString(string: "响应头", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(formatDictionary(request.responseHeaders))\n\n", attributes: contentAttributes))
+        
+        // Response Body
+        attributedString.append(NSAttributedString(string: "响应体", attributes: titleAttributes))
+        attributedString.append(NSAttributedString(string: "\n", attributes: separatorAttributes))
+        attributedString.append(NSAttributedString(string: "\(request.responseBody ?? "无")", attributes: contentAttributes))
+        
+        textView.attributedText = attributedString
     }
     
     private func formatDictionary(_ dict: [String: String]) -> String {
-        guard !dict.isEmpty else { return "None" }
+        guard !dict.isEmpty else { return "无" }
         return dict.map { "\($0.key): \($0.value)" }.joined(separator: "\n")
     }
     
     // MARK: - Actions
     @objc private func shareRequest() {
-        let text = textView.text ?? ""
+        let text = textView.attributedText.string
         let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
         present(activityVC, animated: true)
     }

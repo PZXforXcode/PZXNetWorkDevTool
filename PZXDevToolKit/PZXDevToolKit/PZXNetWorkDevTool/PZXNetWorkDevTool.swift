@@ -198,6 +198,20 @@ public class PZXNetWorkDevTool {
                                             selector: #selector(sceneDidBecomeActive),
                                             name: UIScene.didActivateNotification,
                                             object: nil)
+        
+        
+        NotificationCenter.default.addObserver(
+            forName: UIWindowScene.willConnectNotification,
+            object: nil,
+            queue: .main) { [weak self] notification in
+                
+                if notification.object is UIWindowScene {
+//                    self?.floatingWindow = PZXFloatingWindow()
+//                    self?.floatingWindow?.windowScene = windowScene
+//                    self?.floatingWindow?.isHidden = false
+                    self?.showFloatingWindow()
+                }
+            }
     }
     
     deinit {

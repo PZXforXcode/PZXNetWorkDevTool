@@ -1,8 +1,8 @@
-<p align="center">
-  <img src="https://upload-images.jianshu.io/upload_images/19409325-519689bc90ffc96a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/400" width="400"/>
-  <img src="https://upload-images.jianshu.io/upload_images/19409325-98fcb7203098aa18.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/400" width="400"/>
-  <img src="https://upload-images.jianshu.io/upload_images/19409325-b9f61f7525c69d9b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/400" width="400"/>
-</p>
+<div style="display: flex;">
+  <img src="https://upload-images.jianshu.io/upload_images/19409325-519689bc90ffc96a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="200" alt="20351738916866_.pic.jpg" style="margin-right: 10px;">
+  <img src="https://upload-images.jianshu.io/upload_images/19409325-98fcb7203098aa18.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="200" alt="20361738916867_.pic.jpg" style="margin-right: 10px;">
+  <img src="https://upload-images.jianshu.io/upload_images/19409325-b9f61f7525c69d9b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="200" alt="20371738916868_.pic.jpg">
+</div>
 
 [查看中文README文档](https://github.com/PZXforXcode/PZXNetWorkDevTool/blob/main/README_CN.md)
 

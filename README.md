@@ -4,7 +4,7 @@
   <img src="https://upload-images.jianshu.io/upload_images/19409325-b9f61f7525c69d9b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="200" alt="20371738916868_.pic.jpg">
 </div>
 
-[查看中文README文档](https://github.com/PZXforXcode/PZXNetWorkDevTool/blob/main/README_CN.md)
+**📖 [查看中文README文档](https://github.com/PZXforXcode/PZXNetWorkDevTool/blob/main/README_CN.md)**
 
 ## PZXNetWorkDevTool
 

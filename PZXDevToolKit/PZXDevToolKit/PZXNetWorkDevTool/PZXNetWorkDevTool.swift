@@ -55,7 +55,6 @@ private class NetworkMonitor {
     private var responseData: (response: URLResponse?, data: Data?)?
     
     override class func canInit(with request: URLRequest) -> Bool {
-        print("KpengS canInit \(String(describing: request.method?.rawValue)) \(String(describing: request.url?.absoluteString))")
         // 避免重复拦截
         if URLProtocol.property(forKey: requestIdKey, in: request) != nil {
             return false
@@ -411,6 +410,42 @@ private class NetworkRequestListViewController: UIViewController {
         return formatter
     }()
     
+    private lazy var emptyView: UIView = {
+        let view = UIView()
+        view.isHidden = true
+        
+        let imageView = UIImageView(image: UIImage(systemName: "network.slash"))
+        imageView.tintColor = .systemGray3
+        imageView.contentMode = .scaleAspectFit
+        
+        let label = UILabel()
+        label.text = "暂无网络请求"
+        label.textColor = .systemGray2
+        label.font = .systemFont(ofSize: 16)
+        label.textAlignment = .center
+        
+        view.addSubview(imageView)
+        view.addSubview(label)
+        
+        // 设置约束
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20),
+            imageView.widthAnchor.constraint(equalToConstant: 50),
+            imageView.heightAnchor.constraint(equalToConstant: 50),
+            
+            label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 10),
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        
+        return view
+    }()
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -446,6 +481,11 @@ private class NetworkRequestListViewController: UIViewController {
         tableView.dataSource = self
         tableView.register(NetworkRequestCell.self, forCellReuseIdentifier: "RequestCell")
         view.addSubview(tableView)
+        
+        // 添加空数据视图
+        emptyView.frame = view.bounds
+        emptyView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(emptyView)
     }
     
     private func setupNotifications() {
@@ -457,9 +497,20 @@ private class NetworkRequestListViewController: UIViewController {
     
     // MARK: - Data
     private func loadData() {
-        requests = NetworkMonitor.shared.getAllRequests().reversed()
-        DispatchQueue.main.async {
+        let newRequests = Array(NetworkMonitor.shared.getAllRequests().reversed())
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.requests = newRequests
+            self.updateEmptyViewVisibility()
             self.tableView.reloadData()
+        }
+    }
+    
+    private func updateEmptyViewVisibility() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.emptyView.isHidden = !self.requests.isEmpty
+            self.tableView.isHidden = self.requests.isEmpty
         }
     }
     
@@ -468,8 +519,23 @@ private class NetworkRequestListViewController: UIViewController {
     }
     
     @objc private func clearRequests() {
-        NetworkMonitor.shared.clearRequests()
-        loadData()
+        let alertController = UIAlertController(
+            title: "确认清除",
+            message: "是否清除所有网络请求记录？",
+            preferredStyle: .alert
+        )
+        
+        let cancelAction = UIAlertAction(title: "取消", style: .cancel)
+        
+        let confirmAction = UIAlertAction(title: "确定", style: .destructive) { [weak self] _ in
+            NetworkMonitor.shared.clearRequests()
+            self?.loadData()
+        }
+        
+        alertController.addAction(cancelAction)
+        alertController.addAction(confirmAction)
+        
+        present(alertController, animated: true)
     }
     
     @objc private func dismissSelf() {

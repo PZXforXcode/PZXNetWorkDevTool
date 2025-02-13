@@ -392,10 +392,7 @@ private class FloatingButton: UIButton {
         
     }
     
-    // MARK: - Override Touch Handling
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        return bounds.contains(point)
-    }
+
 }
 
 // MARK: - NetworkRequestListViewController

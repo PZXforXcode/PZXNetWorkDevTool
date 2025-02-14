@@ -13,6 +13,7 @@ class PZXFloatingWindow: UIWindow {
     private var panGesture: UIPanGestureRecognizer!
     private let size: CGFloat = 58
     private let margin: CGFloat = 10
+    private var floatingButton: UIButton!
 
     init() {
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
@@ -22,28 +23,96 @@ class PZXFloatingWindow: UIWindow {
         }
         
         self.backgroundColor = .clear
-        self.windowLevel = .alert // 确保在最顶层
+        self.windowLevel = UIWindow.Level.statusBar + 100
         self.frame = CGRect(x: UIScreen.main.bounds.width - size - margin,
                             y: UIScreen.main.bounds.height / 3,
                             width: size,
                             height: size)
         self.layer.cornerRadius = size / 2
         self.layer.masksToBounds = true
-
+        
         setupFloatingView()
         addGesture()
+        
+        // 监听键盘通知
+        NotificationCenter.default.addObserver(self,
+                                             selector: #selector(keyboardWillShow),
+                                             name: UIResponder.keyboardWillShowNotification,
+                                             object: nil)
+        NotificationCenter.default.addObserver(self,
+                                             selector: #selector(keyboardWillHide),
+                                             name: UIResponder.keyboardWillHideNotification,
+                                             object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func keyboardWillShow(notification: Notification) {
+        self.windowLevel = UIWindow.Level.statusBar + 100
+    }
+    
+    @objc private func keyboardWillHide(notification: Notification) {
+        self.windowLevel = UIWindow.Level.statusBar + 100
+    }
+    
+    private func setupFloatingView() {
+        floatingButton = UIButton(frame: bounds)
+        floatingButton.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
+        floatingButton.layer.cornerRadius = size / 2
+        floatingButton.layer.masksToBounds = true
+        
+        // 添加网络图标
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        let image = UIImage(systemName: "network", withConfiguration: config)
+        floatingButton.setImage(image, for: .normal)
+        floatingButton.tintColor = .white
+        
+        // 添加点击事件
+        floatingButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        
+        self.addSubview(floatingButton)
+    }
+    
+    @objc private func buttonTapped() {
+        // 点击效果
+        UIView.animate(withDuration: 0.1, animations: {
+            self.floatingButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.floatingButton.transform = .identity
+            }
+        }
+        
+        // 如果未显示，则显示网络请求列表
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let keyWindow = windowScene.windows.first {
+            let listVC = NetworkRequestListViewController()
+            let nav = UINavigationController(rootViewController: listVC)
+            nav.modalPresentationStyle = .fullScreen
+            keyWindow.rootViewController?.present(nav, animated: true)
+        }
+    }
+    
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        // 扩大点击区域
+        let enlargedBounds = bounds.insetBy(dx: -10, dy: -10)
+        return enlargedBounds.contains(point)
+    }
+    
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        if let button = super.hitTest(point, with: event) {
+            return button
+        }
+        if bounds.insetBy(dx: -10, dy: -10).contains(point) {
+            return floatingButton
+        }
+        return nil
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupFloatingView() {
-        let floatingView = UIView(frame: self.bounds)
-        floatingView.backgroundColor = .clear
-        floatingView.layer.cornerRadius = size / 2
-        floatingView.layer.masksToBounds = true
-        self.addSubview(floatingView)
     }
 
     private func addGesture() {
@@ -84,5 +153,4 @@ class PZXFloatingWindow: UIWindow {
             }
         }
     }
-
 }

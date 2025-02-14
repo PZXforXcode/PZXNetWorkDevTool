@@ -181,33 +181,13 @@ public class PZXNetWorkDevTool {
     // MARK: - Singleton
     public static let shared = PZXNetWorkDevTool()
     var floatingWindow: PZXFloatingWindow?
-
-    
-    
-    func showFloatingWindow() {
-    #if DEBUG
-        floatingWindow = PZXFloatingWindow()
-        floatingWindow?.isHidden = false
-    #endif
-    }
     
     private init() {
-        // 监听场景激活通知
-        NotificationCenter.default.addObserver(self,
-                                            selector: #selector(sceneDidBecomeActive),
-                                            name: UIScene.didActivateNotification,
-                                            object: nil)
-        
-        
         NotificationCenter.default.addObserver(
             forName: UIWindowScene.willConnectNotification,
             object: nil,
             queue: .main) { [weak self] notification in
-                
                 if notification.object is UIWindowScene {
-//                    self?.floatingWindow = PZXFloatingWindow()
-//                    self?.floatingWindow?.windowScene = windowScene
-//                    self?.floatingWindow?.isHidden = false
                     self?.showFloatingWindow()
                 }
             }
@@ -217,101 +197,41 @@ public class PZXNetWorkDevTool {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // MARK: - Properties
-    private var floatingButton: FloatingButton?
-    private var isSetupComplete = false
-    private var setupPending = false
+    func showFloatingWindow() {
+    #if DEBUG
+        floatingWindow = PZXFloatingWindow()
+        floatingWindow?.isHidden = false
+    #endif
+    }
     
     // MARK: - Public Methods
     public func setup() {
-#if DEBUG
-        setupPending = true
+    #if DEBUG
         setupNetworkInterceptor()
-        trySetupFloatingButton()
-#endif
-
- 
+    #endif
     }
     
     // MARK: - Private Methods
     private func setupNetworkInterceptor() {
-        // 注册网络请求拦截器
         URLProtocol.registerClass(NetworkInterceptor.self)
         
-        // 配置全局URLSession配置
         let config = URLSessionConfiguration.default
-//        let config = AF
-
         config.protocolClasses = [NetworkInterceptor.self] + (config.protocolClasses ?? [])
         
-        // 替换共享session的配置
         URLSession.shared.configuration.protocolClasses = [NetworkInterceptor.self] + (URLSession.shared.configuration.protocolClasses ?? [])
-        
-        // 替换所有标准配置
         URLSessionConfiguration.default.protocolClasses = [NetworkInterceptor.self] + (URLSessionConfiguration.default.protocolClasses ?? [])
         URLSessionConfiguration.ephemeral.protocolClasses = [NetworkInterceptor.self] + (URLSessionConfiguration.ephemeral.protocolClasses ?? [])
         
-        // 注入到已存在的URLSessionConfiguration中
         swizzleProtocolSetterMethod()
     }
     
     private func swizzleProtocolSetterMethod() {
-        // 使用方法交换来确保所有新创建的URLSessionConfiguration都包含我们的拦截器
         guard let originalMethod = class_getInstanceMethod(URLSessionConfiguration.self, #selector(setter: URLSessionConfiguration.protocolClasses)),
               let swizzledMethod = class_getInstanceMethod(URLSessionConfiguration.self, #selector(URLSessionConfiguration.swizzled_setProtocolClasses(_:))) else {
             return
         }
         
         method_exchangeImplementations(originalMethod, swizzledMethod)
-    }
-    
-    @objc private func sceneDidBecomeActive() {
-        if setupPending {
-            trySetupFloatingButton()
-        }
-    }
-    
-    private func trySetupFloatingButton() {
-        // 确保只设置一次
-        guard !isSetupComplete else { return }
-        
-        // 尝试获取keyWindow
-        guard let keyWindow = getKeyWindow() else {
-            // 如果获取不到window，等待场景激活
-            return
-        }
-        
-        setupFloatingButton(in: keyWindow)
-        isSetupComplete = true
-        setupPending = false
-    }
-    
-    private func getKeyWindow() -> UIWindow? {
-        // 首先尝试获取活跃的scene
-        if let windowScene = UIApplication.shared.connectedScenes
-            .filter({ $0.activationState == .foregroundActive })
-            .first as? UIWindowScene {
-            // 从活跃的scene中获取key window
-            return windowScene.windows.first(where: { $0.isKeyWindow })
-        }
-        return nil
-    }
-    
-    private func setupFloatingButton(in window: UIWindow) {
-        // 计算初始位置
-        let screenSize = UIScreen.main.bounds
-        let buttonSize: CGFloat = 58
-        let bottomSafeArea = window.safeAreaInsets.bottom
-        
-        floatingButton = FloatingButton(frame: CGRect(x: 0,
-                                                    y: 0,
-                                                    width: buttonSize,
-                                                    height: buttonSize))
-        
-        if let floatingButton = floatingButton {
-            floatingWindow?.addSubview(floatingButton)
-            floatingButton.layer.zPosition = CGFloat.greatestFiniteMagnitude
-        }
     }
     
     // MARK: - Public Methods
@@ -396,7 +316,7 @@ private class FloatingButton: UIButton {
 }
 
 // MARK: - NetworkRequestListViewController
-private class NetworkRequestListViewController: UIViewController {
+class NetworkRequestListViewController: UIViewController {
     
     // MARK: - Properties
     private let tableView = UITableView()

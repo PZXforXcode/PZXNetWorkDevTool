@@ -199,8 +199,11 @@ public class PZXNetWorkDevTool {
     
     func showFloatingWindow() {
     #if DEBUG
-        floatingWindow = PZXFloatingWindow()
-        floatingWindow?.isHidden = false
+        // 如果floatingWindow已经存在且不为nil，就不再创建新的
+        if floatingWindow == nil {
+            floatingWindow = PZXFloatingWindow()
+            floatingWindow?.isHidden = false
+        }
     #endif
     }
     
@@ -244,76 +247,6 @@ public class PZXNetWorkDevTool {
     }
 }
 
-// MARK: - FloatingButton
-private class FloatingButton: UIButton {
-    
-    // MARK: - Properties
-    private var initialCenter: CGPoint = .zero
-    private weak var presentedNav: UINavigationController?
-    
-    // MARK: - Initialization
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-        setupGestures()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupUI()
-        setupGestures()
-    }
-    
-    // MARK: - UI Setup
-    private func setupUI() {
-        backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
-        layer.cornerRadius = frame.width / 2
-        layer.masksToBounds = true
-        
-        // 设置图标
-        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
-        let image = UIImage(systemName: "network", withConfiguration: config)
-        setImage(image, for: .normal)
-        tintColor = .white
-        
-        // 确保用户交互启用
-        isUserInteractionEnabled = true
-    }
-    
-    private func setupGestures() {
-        addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
-    }
-    
-    // MARK: - Gesture Handling
-    
-    @objc private func buttonTapped() {
-        // 点击效果
-        UIView.animate(withDuration: 0.1, animations: {
-            self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        }) { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.transform = .identity
-            }
-        }
-        // 如果未显示，则显示网络请求列表
-        let listVC = NetworkRequestListViewController()
-        let nav = UINavigationController(rootViewController: listVC)
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let keyWindow = windowScene.windows.first {
-            nav.modalPresentationStyle = .fullScreen
-            keyWindow.rootViewController?.present(nav, animated: true) {
-                self.presentedNav = nav
-            }
-        } else {
-            
-        }
-       
-    
-        
-    }
-    
-
-}
 
 // MARK: - NetworkRequestListViewController
 class NetworkRequestListViewController: UIViewController {

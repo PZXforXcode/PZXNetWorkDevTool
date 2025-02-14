@@ -90,7 +90,6 @@ class PZXFloatingWindow: UIWindow {
            let keyWindow = windowScene.windows.first {
             let listVC = NetworkRequestListViewController()
             let nav = UINavigationController(rootViewController: listVC)
-            nav.modalPresentationStyle = .fullScreen
             keyWindow.rootViewController?.present(nav, animated: true)
         }
     }

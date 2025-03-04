@@ -53,6 +53,7 @@ private class NetworkMonitor {
     private var receivedData: NSMutableData?
     private var startTime: Date?
     private var responseData: (response: URLResponse?, data: Data?)?
+    private var originalRequestBody: Data?  // 新增：保存原始请求体
     
     override class func canInit(with request: URLRequest) -> Bool {
         // 避免重复拦截
@@ -75,6 +76,9 @@ private class NetworkMonitor {
         let identifier = UUID().uuidString
         let mutableRequest = (request as NSURLRequest).mutableCopy() as! NSMutableURLRequest
         URLProtocol.setProperty(true, forKey: NetworkInterceptor.requestIdKey, in: mutableRequest)
+        
+        // 保存原始请求体
+        originalRequestBody = request.httpBody ?? request.httpBodyStream?.readfully()
         
         startTime = Date()
         receivedData = NSMutableData()
@@ -103,8 +107,8 @@ private class NetworkMonitor {
         
         // 获取请求体
         var requestBody: String?
-        if let httpBody = request.httpBody {
-            requestBody = formatData(httpBody)
+        if let bodyData = originalRequestBody {  // 使用保存的原始请求体
+            requestBody = formatData(bodyData)
         }
         
         // 获取响应头
@@ -669,6 +673,30 @@ private extension URLSessionConfiguration {
             classes.insert(NetworkInterceptor.self, at: 0)
         }
         self.swizzled_setProtocolClasses(classes)
+    }
+}
+
+// MARK: - InputStream Extension
+private extension InputStream {
+    func readfully() -> Data? {
+        var result = Data()
+        var buffer = [UInt8](repeating: 0, count: 1024)
+        
+        self.open()
+        defer { self.close() }
+        
+        while self.hasBytesAvailable {
+            let read = self.read(&buffer, maxLength: buffer.count)
+            if read < 0 {
+                return nil // 发生错误
+            } else if read == 0 {
+                break // 到达流末尾
+            } else {
+                result.append(buffer, count: read)
+            }
+        }
+        
+        return result
     }
 }
 

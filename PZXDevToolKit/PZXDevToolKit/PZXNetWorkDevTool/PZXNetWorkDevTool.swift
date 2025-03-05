@@ -24,25 +24,50 @@ private class NetworkMonitor {
     static let shared = NetworkMonitor()
     private init() {}
     
+    // 使用串行队列来保证线程安全
+    private let queue = DispatchQueue(label: "com.pzx.networkmonitor.queue")
+    
+    // 使用 NSLock 来保护共享资源
+    private let lock = NSLock()
+    
     private var requests: [NetworkRequestModel] = []
     private var startTimes: [String: Date] = [:]
     
     func startRequest(identifier: String) {
-        startTimes[identifier] = Date()
+        queue.async {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            self.startTimes[identifier] = Date()
+        }
     }
     
     func addRequest(_ request: NetworkRequestModel) {
-        requests.append(request)
-        NotificationCenter.default.post(name: .newNetworkRequest, object: request)
+        queue.async {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            self.requests.append(request)
+            // 在主线程发送通知
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .newNetworkRequest, object: request)
+            }
+        }
     }
     
     func getAllRequests() -> [NetworkRequestModel] {
-        return requests
+        queue.sync {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            return self.requests
+        }
     }
     
     func clearRequests() {
-        requests.removeAll()
-        startTimes.removeAll()
+        queue.async {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            self.requests.removeAll()
+            self.startTimes.removeAll()
+        }
     }
 }
 
